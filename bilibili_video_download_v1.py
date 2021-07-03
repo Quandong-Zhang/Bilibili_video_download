@@ -11,11 +11,7 @@ __author__ = 'Henry'
 
 20190422 - 增加多P视频单独下载其中一集的功能
 '''
-import imageio
-imageio.plugins.ffmpeg.download()
-
 import requests, time, hashlib, urllib.request, re, json
-from moviepy.editor import *
 import os, sys
 
 
@@ -135,38 +131,6 @@ def down_video(video_list, title, start_url, page):
             urllib.request.urlretrieve(url=i, filename=os.path.join(currentVideoPath, r'{}.flv'.format(title)),reporthook=Schedule_cmd)  # 写成mp4也行  title + '-' + num + '.flv'
         num += 1
 
-# 合并视频
-def combine_video(video_list, title):
-    currentVideoPath = os.path.join(sys.path[0], 'bilibili_video', title)  # 当前目录作为下载目录
-    if not os.path.exists(currentVideoPath):
-        os.makedirs(currentVideoPath)
-    if len(video_list) >= 2:
-        # 视频大于一段才要合并
-        print('[下载完成,正在合并视频...]:' + title)
-        # 定义一个数组
-        L = []
-        # 访问 video 文件夹 (假设视频都放在这里面)
-        root_dir = currentVideoPath
-        # 遍历所有文件
-        for file in sorted(os.listdir(root_dir), key=lambda x: int(x[x.rindex("-") + 1:x.rindex(".")])):
-            # 如果后缀名为 .mp4/.flv
-            if os.path.splitext(file)[1] == '.flv':
-                # 拼接成完整路径
-                filePath = os.path.join(root_dir, file)
-                # 载入视频
-                video = VideoFileClip(filePath)
-                # 添加到数组
-                L.append(video)
-        # 拼接视频
-        final_clip = concatenate_videoclips(L)
-        # 生成目标视频文件
-        final_clip.to_videofile(os.path.join(root_dir, r'{}.mp4'.format(title)), fps=24, remove_temp=False)
-        print('[视频合并完成]' + title)
-
-    else:
-        # 视频只有一段则直接打印下载完成
-        print('[视频合并完成]:' + title)
-
 
 if __name__ == '__main__':
     # 用户输入av号或者视频链接地址
@@ -183,7 +147,7 @@ if __name__ == '__main__':
     # <accept_format><![CDATA[flv,flv720,flv480,flv360]]></accept_format>
     # <accept_description><![CDATA[高清 1080P,高清 720P,清晰 480P,流畅 360P]]></accept_description>
     # <accept_quality><![CDATA[80,64,32,16]]></accept_quality>
-    quality = input('请输入您要下载视频的清晰度(1080p:80;720p:64;480p:32;360p:16)(填写80或64或32或16):')
+    quality = "80"
     # 获取视频的cid,title
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
@@ -213,7 +177,6 @@ if __name__ == '__main__':
         video_list = get_play_list(start_url, cid, quality)
         start_time = time.time()
         down_video(video_list, title, start_url, page)
-        combine_video(video_list, title)
 
     # 如果是windows系统，下载完成后打开下载目录
     currentVideoPath = os.path.join(sys.path[0], 'bilibili_video')  # 当前目录作为下载目录
